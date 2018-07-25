@@ -28,13 +28,13 @@ import com.amazon.speech.ui.SsmlOutputSpeech;
 
 import de.aitools.aq.alexa.AlexaService;
 
-public class JasperSpeechlet implements SpeechletV2 {
+public class FindUSSpeechlet implements SpeechletV2 {
 
 	//////////////////////////////////////////////////////////////////////////////
 	// LOGGING //
 	//////////////////////////////////////////////////////////////////////////////
 
-	private static Logger LOG = LoggerFactory.getLogger(JasperSpeechlet.class);
+	private static Logger LOG = LoggerFactory.getLogger(FindUSSpeechlet.class);
 
 	//////////////////////////////////////////////////////////////////////////////
 	// CONSTANTS //
@@ -260,7 +260,7 @@ public class JasperSpeechlet implements SpeechletV2 {
 	//////////////////////////////////////////////////////////////////////////////
 
 	public static void main(final String[] args) throws Exception {
-		AlexaService.mainV2(JasperSpeechlet.class, args);
+		AlexaService.mainV2(FindUSSpeechlet.class, args);
 	}
 
 	//////////////////////////////////////////////////////////////////////////////
