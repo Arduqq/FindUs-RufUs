@@ -53,7 +53,7 @@ public class FindUSSpeechlet implements SpeechletV2 {
 	private static final String SLOT_Objects = "object";
 	private static final String SLOT_Prepositions = "position";
 	private static final String SLOT_Spots = "spot";
-	
+
 	
 	private static final String SAVE_PATH = "resources/save.properties";
 	private static final Properties props = loadProperties(SAVE_PATH);

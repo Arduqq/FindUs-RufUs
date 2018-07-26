@@ -40,23 +40,24 @@ public class RufUSSpeechlet implements SpeechletV2 {
 	// CONSTANTS //
 	//////////////////////////////////////////////////////////////////////////////
 
-	private static final String INTENT_AddTrack    = "AddTrackIntent";
+	private static final String INTENT_AddTrack = "AddTrackIntent";
 	private static final String INTENT_RemoveTrack = "RemoveTrackIntent";
-	private static final String INTENT_PlayTrack   = "PlayTrackIntent";
+	private static final String INTENT_PlayTrack = "PlayTrackIntent";
 
 	private static final String INTENT_Fallback = "AMAZON.FallbackIntent";
 	private static final String INTENT_Cancel = "AMAZON.CancelIntent";
 	private static final String INTENT_Help = "AMAZON.HelpIntent";
 	private static final String INTENT_Stop = "AMAZON.StopIntent";
-	private static final String INTENT_Pause   = "AMAZON.PauseIntent";
+	private static final String INTENT_Pause = "AMAZON.PauseIntent";
 	private static final String INTENT_Resume = "AMAZON.ResumeIntent";
 
 	private static final String SLOT_Number = "number";
 	private static final String SLOT_Animal = "animal";
-	
-	
-	private static final String SOUNDLIB_PATH = "data/soundlib/";
-	//private static final Properties props = loadProperties(SAVE_PATH);
+
+	private static final String SOUNDLIB_PATH = "https://invictus.cool/storage/";
+	private static final String AUDIO_SSML_F = "<audio src=\"";
+	private static final String AUDIO_SSML_B = "\"/>";
+	// private static final Properties props = loadProperties(SAVE_PATH);
 
 	//////////////////////////////////////////////////////////////////////////////
 	// HANDLER METHODS //
@@ -70,10 +71,7 @@ public class RufUSSpeechlet implements SpeechletV2 {
 		final SsmlOutputSpeech output = new SsmlOutputSpeech();
 		response.setOutputSpeech(output);
 
-		output.setSsml("<speak> <audio src=\""
-				+ "https://invictus.cool/storage/chipmunk.mp3\"/></speak>");
-		
-
+		output.setSsml("<speak>" + AUDIO_SSML_F + SOUNDLIB_PATH + "chipmunk.mp3" + AUDIO_SSML_B + "</speak>");
 
 		response.setShouldEndSession(false);
 		return response;
@@ -88,12 +86,11 @@ public class RufUSSpeechlet implements SpeechletV2 {
 	@Override
 	public SpeechletResponse onIntent(final SpeechletRequestEnvelope<IntentRequest> requestEnvelope) {
 		LOG.debug("onIntent: " + requestEnvelope.getRequest().getIntent().getName());
-		
+
 		final Session session = requestEnvelope.getSession();
 		final SpeechletResponse response = new SpeechletResponse();
 		final SsmlOutputSpeech output = new SsmlOutputSpeech();
 		response.setOutputSpeech(output);
-		
 
 		@SuppressWarnings("unchecked")
 
@@ -120,44 +117,43 @@ public class RufUSSpeechlet implements SpeechletV2 {
 		return response;
 	}
 
-	
-	
-	
-	
-	
-	
-
-
-
-	
-	
-	
-   private String onPlayTrackIntent(Session session, Map<String, Slot> slots) {
-	   
-		return null;
+	private String onPlayTrackIntent(Session session, Map<String, Slot> slots) {
+		String answer = "";
+		String animal = null;
+		String number = null;
+		
+		try {
+			animal = slots.get(SLOT_Animal).getValue();
+			number = slots.get(SLOT_Number).getValue();
+		} catch (NullPointerException e) {
+			System.out.println("No slot word found!");
+		}
+		
+		if (animal != null) {
+			answer = AUDIO_SSML_F + SOUNDLIB_PATH + animal + ".mp3" + AUDIO_SSML_B;
+		}
+		return answer;
 	}
 
-/**
+	/**
 	 * Loads the properties.
 	 */
-	private static Properties loadProperties(String path){
+	private static Properties loadProperties(String path) {
 		Properties props = new Properties();
 		FileInputStream inputStream = null;
 		Path configFile = Paths.get(path);
 		try {
 			inputStream = new FileInputStream(configFile.toString());
 			props.load(inputStream);
-		} catch (IOException ioe){
+		} catch (IOException ioe) {
 			ioe.printStackTrace();
 		}
 		return props;
 	}
-	
-	
+
 	//////////////////////////////////////////////////////////////////////////////
 	// SESSION ATTRIBUTES MANAGER //
 	//////////////////////////////////////////////////////////////////////////////
-	
 
 	//////////////////////////////////////////////////////////////////////////////
 	// PROGRAM //
