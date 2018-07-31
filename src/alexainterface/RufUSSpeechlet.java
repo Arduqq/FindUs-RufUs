@@ -43,6 +43,7 @@ public class RufUSSpeechlet implements SpeechletV2 {
 	private static final String INTENT_AddTrack = "AddTrackIntent";
 	private static final String INTENT_RemoveTrack = "RemoveTrackIntent";
 	private static final String INTENT_PlayTrack = "PlayTrackIntent";
+	private static final String INTENT_LoopTrack = "LoopTrackIntent";
 
 	private static final String INTENT_Fallback = "AMAZON.FallbackIntent";
 	private static final String INTENT_Cancel = "AMAZON.CancelIntent";
@@ -53,11 +54,16 @@ public class RufUSSpeechlet implements SpeechletV2 {
 
 	private static final String SLOT_Number = "number";
 	private static final String SLOT_Animal = "animal";
+	private static final String SLOT_SECONDS = "seconds";
 
 	private static final String SOUNDLIB_PATH = "https://invictus.cool/storage/";
 	private static final String AUDIO_SSML_F = "<audio src=\"";
 	private static final String AUDIO_SSML_B = "\"/>";
 	// private static final Properties props = loadProperties(SAVE_PATH);
+	
+	
+	private static final String BREAK_ONE_SEC 	= " <break time=\"1s\"/>";
+	
 
 	//////////////////////////////////////////////////////////////////////////////
 	// HANDLER METHODS //
@@ -71,7 +77,7 @@ public class RufUSSpeechlet implements SpeechletV2 {
 		final SsmlOutputSpeech output = new SsmlOutputSpeech();
 		response.setOutputSpeech(output);
 
-		output.setSsml("<speak>" + AUDIO_SSML_F + SOUNDLIB_PATH + "chipmunk.mp3" + AUDIO_SSML_B + "</speak>");
+		output.setSsml("Hi! You can ask me to play animals sounds. Have fun!");
 
 		response.setShouldEndSession(false);
 		return response;
@@ -80,7 +86,6 @@ public class RufUSSpeechlet implements SpeechletV2 {
 	@Override
 	public void onSessionStarted(final SpeechletRequestEnvelope<SessionStartedRequest> requestEnvelope) {
 		LOG.debug("onSessionStarted");
-
 	}
 
 	@Override
@@ -92,12 +97,14 @@ public class RufUSSpeechlet implements SpeechletV2 {
 		final SsmlOutputSpeech output = new SsmlOutputSpeech();
 		response.setOutputSpeech(output);
 
-		@SuppressWarnings("unchecked")
-
 		final Intent intent = requestEnvelope.getRequest().getIntent();
 		switch (intent.getName()) {
 		case INTENT_PlayTrack:
 			output.setSsml("<speak>" + this.onPlayTrackIntent(session, intent.getSlots()) + "</speak>");
+			response.setShouldEndSession(false);
+			break;
+		case INTENT_LoopTrack:
+			output.setSsml("<speak>" + this.onLoopTrack(session, intent.getSlots()) + "</speak>");
 			response.setShouldEndSession(false);
 			break;
 		case INTENT_Fallback:
@@ -117,6 +124,9 @@ public class RufUSSpeechlet implements SpeechletV2 {
 		return response;
 	}
 
+	
+	
+
 	private String onPlayTrackIntent(Session session, Map<String, Slot> slots) {
 		String answer = "";
 		String animal = null;
@@ -132,6 +142,40 @@ public class RufUSSpeechlet implements SpeechletV2 {
 		if (animal != null) {
 			answer = AUDIO_SSML_F + SOUNDLIB_PATH + animal + ".mp3" + AUDIO_SSML_B;
 		}
+		return answer;
+	}
+
+	private String onLoopTrack(Session session, Map<String, Slot> slots) {
+		String answer = "";
+		String animal = null;
+		String number = null;
+		String seconds = null;
+		
+		try {
+			animal = slots.get(SLOT_Animal).getValue();
+			number = slots.get(SLOT_Number).getValue();
+			seconds = slots.get(SLOT_SECONDS).getValue();
+		} catch (NullPointerException e) {
+			System.out.println("No slot word found!");
+		}
+		
+		int times = 0, pause = 0;
+		if (number == null) {
+			times = 5;
+			answer += "I'll just loop this track for 5 times for you. ";
+		} else {
+			times = Integer.parseInt(number);
+		}
+		pause = Integer.parseInt(seconds);
+		
+		
+		for (int i = 0; i < times; i++) {
+			answer += AUDIO_SSML_F + SOUNDLIB_PATH + animal + ".mp3" + AUDIO_SSML_B;
+			for (int j = 0; j < pause; j++) {
+				answer += BREAK_ONE_SEC;
+			}
+		}
+		
 		return answer;
 	}
 
