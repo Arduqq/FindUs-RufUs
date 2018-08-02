@@ -1,13 +1,9 @@
 package alexainterface;
 
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -44,19 +40,23 @@ public class RufUSSpeechlet implements SpeechletV2 {
 	private static final String INTENT_RemoveTrack = "RemoveTrackIntent";
 	private static final String INTENT_PlayTrack = "PlayTrackIntent";
 	private static final String INTENT_LoopTrack = "LoopTrackIntent";
+	private static final String INTENT_RandomMix = "RandomMixIntent";
 
 	private static final String INTENT_Fallback = "AMAZON.FallbackIntent";
 	private static final String INTENT_Cancel = "AMAZON.CancelIntent";
 	private static final String INTENT_Help = "AMAZON.HelpIntent";
 	private static final String INTENT_Stop = "AMAZON.StopIntent";
-	private static final String INTENT_Pause = "AMAZON.PauseIntent";
-	private static final String INTENT_Resume = "AMAZON.ResumeIntent";
+//	private static final String INTENT_Pause = "AMAZON.PauseIntent";
+//	private static final String INTENT_Resume = "AMAZON.ResumeIntent";
 
 	private static final String SLOT_Number = "number";
 	private static final String SLOT_Animal = "animal";
 	private static final String SLOT_SECONDS = "seconds";
 
-	private static final String SOUNDLIB_PATH = "https://invictus.cool/storage/";
+	private static final String OUTPUT_PATH = "https://invictus.cool/storage/";
+	private static final String SOUNDLIB_PATH = "https://invictus.cool/storage/sounds/";
+	private static final String SERVER_ADD_PATH = "https://invictus.cool:5000/sound/";
+	private static final String SERVER_RANDOM_PATH = "https://invictus.cool:5000/";
 	private static final String AUDIO_SSML_F = "<audio src=\"";
 	private static final String AUDIO_SSML_B = "\"/>";
 	// private static final Properties props = loadProperties(SAVE_PATH);
@@ -77,7 +77,8 @@ public class RufUSSpeechlet implements SpeechletV2 {
 		final SsmlOutputSpeech output = new SsmlOutputSpeech();
 		response.setOutputSpeech(output);
 
-		output.setSsml("Hi! You can ask me to play animals sounds. Have fun!");
+		output.setSsml("<speak> Hi! You can ask me to play animals sounds. Have fun!"
+				+  AUDIO_SSML_F + SOUNDLIB_PATH + "ambience.mp3" + AUDIO_SSML_B + " </speak>");
 
 		response.setShouldEndSession(false);
 		return response;
@@ -107,7 +108,18 @@ public class RufUSSpeechlet implements SpeechletV2 {
 			output.setSsml("<speak>" + this.onLoopTrack(session, intent.getSlots()) + "</speak>");
 			response.setShouldEndSession(false);
 			break;
-		case INTENT_Fallback:
+		case INTENT_RandomMix:
+			output.setSsml("<speak>" + this.onRandomMix(session, intent.getSlots()) + "</speak>");
+			response.setShouldEndSession(false);
+			break;
+		case INTENT_AddTrack:
+			output.setSsml("<speak>" + this.onAddTrack(session, intent.getSlots()) + "</speak>");
+			response.setShouldEndSession(false);
+			break;
+		case INTENT_RemoveTrack:
+			output.setSsml("<speak>" + this.onRemoveTrack(session, intent.getSlots()) + "</speak>");
+			response.setShouldEndSession(false);
+			break;
 		case INTENT_Help:
 			output.setSsml("<speak>" + "</speak>");
 			response.setShouldEndSession(false);
@@ -117,6 +129,7 @@ public class RufUSSpeechlet implements SpeechletV2 {
 			output.setSsml("<speak>Close</speak>");
 			response.setShouldEndSession(true);
 			break;
+		case INTENT_Fallback:
 		default:
 			output.setSsml("<speak>Error. Invalid intent. " + intent.getName() + "</speak>");
 			response.setShouldEndSession(false);
@@ -125,6 +138,7 @@ public class RufUSSpeechlet implements SpeechletV2 {
 	}
 
 	
+
 	
 
 	private String onPlayTrackIntent(Session session, Map<String, Slot> slots) {
@@ -179,6 +193,52 @@ public class RufUSSpeechlet implements SpeechletV2 {
 		return answer;
 	}
 
+	private String onRandomMix(Session session, Map<String, Slot> slots) {
+		String answer = "";
+		String url = SERVER_RANDOM_PATH + "random";
+		try {
+			HTTPRequests.sendGetRequest(url);
+		} catch (Exception e) {
+			e.printStackTrace();
+			answer = "Sorry, there seems to be a problem with the backend server.";
+		}
+		
+		answer = AUDIO_SSML_F + OUTPUT_PATH + "random.mp3" + AUDIO_SSML_B;
+		
+		return answer;
+	}
+	
+	private String onAddTrack(Session session, Map<String, Slot> slots) {
+		String answer = "";
+		String animal = null;
+		String number = null;
+		
+		try {
+			animal = slots.get(SLOT_Animal).getValue();
+//			number = slots.get(SLOT_Number).getValue();
+		} catch (NullPointerException e) {
+			System.out.println("No slot word found!");
+		}
+		String url = SERVER_ADD_PATH + animal;
+		
+		try {
+			HTTPRequests.sendGetRequest(url);
+		} catch (Exception e) {
+			e.printStackTrace();
+			answer = "Sorry, there seems to be a problem with the backend server.";
+		}
+		
+		answer = AUDIO_SSML_F + OUTPUT_PATH + "output.mp3" + AUDIO_SSML_B;
+		
+		return answer;
+	}
+	
+	private String onRemoveTrack(Session session, Map<String, Slot> slots) {
+		return "This intent is still in development";
+	}
+
+
+
 	/**
 	 * Loads the properties.
 	 */
@@ -194,10 +254,6 @@ public class RufUSSpeechlet implements SpeechletV2 {
 		}
 		return props;
 	}
-
-	//////////////////////////////////////////////////////////////////////////////
-	// SESSION ATTRIBUTES MANAGER //
-	//////////////////////////////////////////////////////////////////////////////
 
 	//////////////////////////////////////////////////////////////////////////////
 	// PROGRAM //
